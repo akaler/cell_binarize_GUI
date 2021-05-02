@@ -31,12 +31,7 @@ begin_main = 0
 
 
 def number_of_pages(begin_frame, end_frame, frame_intervals):
-    #print("INSIDE NUMBER_OF_PAGES")
-    #print("begin_frame: ", begin_frame)
-    #print("end_frame: ", end_frame)
-    #print("frame_intervals: ", frame_intervals)
     pages = (end_frame - begin_frame) / (3*frame_interval)
-    #print("pages: ", pages)
     return pages
 
 class ThreadedTask(threading.Thread):
@@ -44,7 +39,6 @@ class ThreadedTask(threading.Thread):
         threading.Thread.__init__(self)
     def run(self):
         global begin
-        #print("begin", begin)
 
         im_phase = skimage.io.imread("{}.png".format(0))
         hist_phase, bins_phase = skimage.exposure.histogram(im_phase)
@@ -195,24 +189,15 @@ def forward():
     draw_grid()
 
     update_frame_text_threshold()
-    # as the list starts from 0 so we are 
-    # subtracting one 
-    # img_no+1 as we want the next image to pop up 
-    #print("end_frame - end: ", end_frame - end, "<", 3*frame_interval + 1)
     
     if end_frame - end < 3 * frame_interval + 1: 
         button_forward = Button(root, text="Forward", command=forward, state=DISABLED) 
     else: 
         button_forward = Button(root, text="Forward", command=forward) 
-    # img_no-1 as we want previous image when we click 
     # back button 
     button_back = Button(root, text="Back",command=back) 
     button_forward.grid(row=7, column=2,sticky = "w") 
     button_back.grid(row=7, column=1,sticky = "e") 
-    # Placing the button in new grid 
-    #button_back.grid(row=5, column=0) 
-    #button_exit.grid(row=5, column=1) 
-    #button_for.grid(row=5, column=2) 
   
 def back(): 
     # We will have global variable to access these 
@@ -287,7 +272,6 @@ def calculate_otzu_threshold():
         total_threshold += th
         count += 1
     avg = total_threshold/count
-    #print("AVERAGE OTZU THRESHOLD: ", avg)
     return avg
 
 def calculate_otzu_threshold_interval(begin, end):
@@ -303,7 +287,6 @@ def calculate_otzu_threshold_interval(begin, end):
         total_threshold += th
         count += 1
     avg = total_threshold/count
-    #print("AVERAGE OTZU for begin {} end {} THRESHOLD: ".format(begin, end), avg)
     return avg
 
 def update_frame_text_threshold():
@@ -405,8 +388,6 @@ def update_page_threshold_dict(threshold, current_page):
         else:
             break
 
-
-
 def display_segmented_image(dum):
     global scale_widget
     global s
@@ -454,20 +435,17 @@ def setup_images(begin, end):
     global images
     global frame_interval
     List_images = [] 
-    print("inside setup_images()")
-    print("begin: ", begin)
-    print("end: ", end) 
     for i in range(begin, end+1, frame_interval): #this is the bug
         List_images.append(ImageTk.PhotoImage(Image.open(images[i])))
-    #print(List_images)
   
 def plot_a_graph():
     global begin
     global images
+    global input_dir
     global current_page
     global page_threshold_dict
-    #print("begin", begin)
-    im_phase = skimage.io.imread("{}.png".format(begin))
+
+    im_phase = skimage.io.imread("{}/{}.png".format(input_dir,begin))
     hist_phase, bins_phase = skimage.exposure.histogram(im_phase)
     # Use matplotlib to make a pretty plot of histogram data
     fig, ax = plt.subplots(1, 1)
@@ -481,13 +459,10 @@ def plot_a_graph():
     xmin, xmax, ymin, ymax = plt.axis()
     total_threshold = 0
 
-    #print("ymax: ", ymax) 
     src = cv2.imread(str(images[begin].resolve()), cv2.IMREAD_GRAYSCALE)
-    #th, dst = cv2.threshold(src, 0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
   
     th = page_threshold_dict[current_page][1] 
 
-    #print("th: ", th)
     _ = ax.plot([th,th], [0, ymax], color="red", label = "Selected threshold")
     plt.legend(loc = "upper right")
     plt.show()
@@ -533,9 +508,7 @@ def draw_grid():
     #setting visted bool to True
     page_threshold_dict[current_page][0] = True
     scale_widget.set(page_threshold_dict[current_page][1])
-    #print("draw_grid begin: ", begin)
-    #print("draw_grid end: ", begin + 3 * frame_interval)
-    #recommended_thresh_interval = calculate_otzu_threshold_interval(begin, begin + (3*frame_interval))
+
     if "image1" in globals():
         image1.grid_forget()
         image2.grid_forget()
@@ -545,7 +518,7 @@ def draw_grid():
         image6.grid_forget()
         image7.grid_forget()
         image8.grid_forget()
-    print("forgeting q1_text from draw_grid()")
+    #print("forgeting q1_text from draw_grid()")
     if "q1_text" in globals():
         q1_text.grid_forget()
         q2_text.grid_forget()
@@ -631,20 +604,20 @@ def create_page_dict(total_pages):
     global frame_interval
 
     page_threshold_dict = {}
-    print("total_pages : ", total_pages)
+    #print("total_pages : ", total_pages)
     page_start_frame_number = 0
     page_end_frame_number = 3 * frame_interval
     for i in range(1, int(total_pages)+1):
         page_threshold_dict[i] = [False, thres, page_start_frame_number, page_end_frame_number]
         page_start_frame_number += 3 *frame_interval
         page_end_frame_number += 3 * frame_interval
-    print(page_threshold_dict)
+    #print(page_threshold_dict)
     return
 
 def create_frame_dict(begin, end):
     global frame_threshold_dict
     global thres
-    print("Creating frame dictionary")
+    #print("Creating frame dictionary")
     frame_threshold_dict = {}
     for i in range(begin, end):
         frame_threshold_dict[i] = thres
@@ -668,7 +641,7 @@ def choose_input():
     current_page = 1
     input_dir_dialog = filedialog.askdirectory(title='choose input directory', mustexist=True)
     if input_dir_dialog != None:
-        print(input_dir_dialog)
+        #print(input_dir_dialog)
         input_dir = pathlib.Path(input_dir_dialog)
         input_dialog = InputDialog(input_dir)
         input_dialog.show()
@@ -693,6 +666,8 @@ def choose_input():
             #print("calculate_otzu+threshold(): ", thres)
             scale_widget.set(thres)
             total_pages = number_of_pages(begin_frame, end_frame, frame_interval)
+            if total_pages > 50:
+                messagebox.showwarning("Warning", "Frame interval is too small. Please pick a bigger frame interval")
             #print("total_pages: ", total_pages)
             create_page_dict(total_pages)
             create_frame_dict(begin_frame, end_frame)
@@ -716,11 +691,11 @@ def print_frame_dict():
         if page_number != 1:
             previous_page_threshold = page_threshold_dict[page_number - 1][1]
             current_page_threshold  = page_threshold_dict[page_number][1]
-            print("currentpage: {} - previous page: {} = {}".format(current_page_threshold, previous_page_threshold, current_page_threshold - previous_page_threshold),end=" ")
+            #print("currentpage: {} - previous page: {} = {}".format(current_page_threshold, previous_page_threshold, current_page_threshold - previous_page_threshold),end=" ")
 
             threshold_increase_per_frame = (current_page_threshold - previous_page_threshold)/(frame_interval * 3)
 
-            print("threshold_increase_per_frame: ", threshold_increase_per_frame, end = " ")
+            #print("threshold_increase_per_frame: ", threshold_increase_per_frame, end = " ")
 
             linear_smooth_threshold += threshold_increase_per_frame
 
@@ -730,9 +705,9 @@ def print_frame_dict():
         elif page_number == 1:
             frame_threshold_dict[key] = page_threshold_dict[1][1]
             
-        print("key:", key, "val:", val, "page#:", page_number, "(dict): page_threshold:",page_threshold_dict[page_number], "linear_smooth_threshold =", linear_smooth_threshold, "func_of_frame_num:", linear_smooth_func_of_frame_num)
+        #print("key:", key, "val:", val, "page#:", page_number, "(dict): page_threshold:",page_threshold_dict[page_number], "linear_smooth_threshold =", linear_smooth_threshold, "func_of_frame_num:", linear_smooth_func_of_frame_num)
 
-    print(frame_threshold_dict)
+    #print(frame_threshold_dict)
 
 def choose_output():
     global scale_widget
@@ -742,29 +717,26 @@ def choose_output():
 
     output_dir_dialog = filedialog.askdirectory(title='choose output directory', mustexist=True)
 
-
-
-
-
     if output_dir_dialog != None:
-        print("SAVING ---------- page threshold_dict: below")
-        print(page_threshold_dict)
-        print(output_dir_dialog)
-        print_frame_dict()
+        #print("SAVING ---------- page threshold_dict: below")
+        #print(page_threshold_dict)
+        #print(output_dir_dialog)
+        #print_frame_dict()
         output_dir = pathlib.Path(output_dir_dialog)
         processed_images = []
-        print("choose_output folder, len(Images): ", len(images))
+        #print("choose_output folder, len(Images): ", len(images))
         
         for i in range(end_frame):
             src = cv2.imread(str(images[i].resolve()), cv2.IMREAD_GRAYSCALE)
             thresh = scale_widget.get() # change this thresh depending on each image
             thresh = frame_threshold_dict[i]  
-            print("saving frame {}'s threshold {}".format(i, thresh))
+            #print("saving frame {}'s threshold {}".format(i, thresh))
             maxValue = 255 
             th, dst = cv2.threshold(src, thresh, maxValue, cv2.THRESH_BINARY_INV);      
         
             im_pil = Image.fromarray(dst)
             im_pil.save(output_dir / images[i].name)
+    print("Successfully saved to {}".format(output_dir))
 
 
 def background(func):
@@ -823,13 +795,10 @@ def initial_view():
     button_back = Button(root, text="Back", command=back, state=DISABLED)
     button_exit = Button(root, text="Exit", command=root.quit)
     button_forward = Button(root, text="Forward", command=forward)
-    #button_set = Button(root, text="Display Histogram", command= lambda : background(plot_a_graph))
-    #button_set = Button(root, text="Display Histogram", command=p1.start)#plot_a_graph)
     button_set = Button(root, text="Display Histogram", command=plot_a_graph)
 
     button_set.configure(foreground="red")
     
-    #button_get_begin = Button(root, text="Print begin", command=print_begin)
     # grid function is for placing the buttons in the frame
     button_exit.grid(row=7, column=1,sticky = "w")
     button_back.grid(row=7, column=1,sticky = "e")
